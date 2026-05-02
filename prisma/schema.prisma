@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id       Int        @id @default(autoincrement())
+  name     String
+  parentId Int?       @map("parent_id")
+  parent   Category?  @relation("CategoryChildren", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryChildren")
+  notes    Note[]
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@map("categories")
+}
+
+model Tag {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  noteTags  NoteTag[]
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  @@map("tags")
+}
+
+model Note {
+  id            Int       @id @default(autoincrement())
+  notionPageId  String    @unique @map("notion_page_id")
+  title         String
+  content       String    @default("")
+  summary       String?
+  categoryId    Int?      @map("category_id")
+  category      Category? @relation(fields: [categoryId], references: [id])
+  noteTags      NoteTag[]
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  notionUpdatedAt DateTime? @map("notion_updated_at")
+
+  @@index([title])
+  @@index([categoryId])
+  @@map("notes")
+}
+
+model NoteTag {
+  id     Int  @id @default(autoincrement())
+  noteId Int  @map("note_id")
+  tagId  Int  @map("tag_id")
+  note   Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag    Tag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, tagId])
+  @@map("note_tags")
+}
