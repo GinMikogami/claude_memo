@@ -12,7 +12,7 @@ export async function getCategoryTree(): Promise<CategoryWithChildren[]> {
   }
 
   const roots: CategoryWithChildren[] = [];
-  for (const c of map.values()) {
+  for (const c of Array.from(map.values())) {
     if (c.parentId === null) {
       roots.push(c);
     } else {

@@ -111,19 +111,22 @@ async function resolveCategory(
 ): Promise<number | null> {
   if (!parentName) return null;
 
-  const parent = await prisma.category.upsert({
-    where: { name_parentId: { name: parentName, parentId: null } },
-    create: { name: parentName, parentId: null },
-    update: {},
+  // upsert with nullable unique fields is unreliable — use findFirst + create
+  let parent = await prisma.category.findFirst({
+    where: { name: parentName, parentId: null },
   });
+  if (!parent) {
+    parent = await prisma.category.create({ data: { name: parentName } });
+  }
 
   if (!childName) return parent.id;
 
-  const child = await prisma.category.upsert({
-    where: { name_parentId: { name: childName, parentId: parent.id } },
-    create: { name: childName, parentId: parent.id },
-    update: {},
+  let child = await prisma.category.findFirst({
+    where: { name: childName, parentId: parent.id },
   });
+  if (!child) {
+    child = await prisma.category.create({ data: { name: childName, parentId: parent.id } });
+  }
 
   return child.id;
 }

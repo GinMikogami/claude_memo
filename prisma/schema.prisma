@@ -16,7 +16,6 @@ model Category {
   notes    Note[]
   createdAt DateTime  @default(now()) @map("created_at")
 
-  @@unique([name, parentId], name: "name_parentId")
   @@map("categories")
 }
 
